@@ -1,0 +1,89 @@
+// Testbench para a máquina de estados
+module msm_tb;
+  // Definição dos sinais de teste
+  logic clk, rst, in, critical_state;
+  logic [1:0] out;
+  logic [2:0] state;
+  
+  // Instanciação do módulo FSM (Finite State Machine)
+  MSM test(
+    .clk(clk),
+    .reset(rst),
+    .order(in),
+    .critical_state(critical_state),
+    .out_value(out),
+    .state(state)
+  );
+  
+  // Função para converter o estado em string
+  function string state_to_string(input [2:0] state);
+    case (state)
+      3'b000: state_to_string = "OPEN";
+      3'b001: state_to_string = "OPENING";
+      3'b010: state_to_string = "CLOSE";
+      3'b011: state_to_string = "CLOSING";
+      3'b100: state_to_string = "EMERGENCY";
+      default: state_to_string = "Unknown";
+    endcase
+  endfunction
+  
+  // Função para converter a operação em string
+  function string operation_to_string(input [1:0] operation);
+    case (operation)
+      2'b00: operation_to_string = "STOP";
+      2'b01: operation_to_string = "RUN";
+      2'b10: operation_to_string = "NUR";
+      default: operation_to_string = "Unknown";
+    endcase
+  endfunction
+  
+  // Geração do clock
+  parameter CLK_Period = 10;
+  initial begin
+    clk = 0;
+    forever #(CLK_Period / 2) clk = ~clk;
+  end
+  
+  // Estímulo e verificação do FSM
+  initial begin
+    $monitor("Tempo: %0t, clk: %b, rst: %b, in: %b, critical_state: %b, out: %s, state: %s", 
+             $time, clk, rst, in, critical_state, operation_to_string(out), state_to_string(state));
+    
+    // Inicializar sinais
+    in = 0;
+    rst = 1;
+    critical_state = 0;
+    
+    // Aplicar reset
+    #(CLK_Period) rst = 0;
+    
+    // Testar transições de estado do FSM
+    #CLK_Period;
+    assert(out === 0) else $error("Erro de valor esperado no tempo %0t: out = %b", $time, out);
+    
+    // Teste normal de operação: simular transições
+    for (int k = 0; k < 2; k++) begin
+      for (int j = 0; j < 4; j++) begin
+        for (int i = 0; i < 2; i++) begin
+          #(CLK_Period/2);
+        end
+        in = ~in;  // Alternar o sinal de entrada para verificar a resposta
+      end
+    end
+    
+    // Testando o cenário de emergência
+    $display("Testando a condição de emergência");
+    
+    for (int k = 0; k < 2; k++) begin
+      for (int j = 0; j < 4; j++) begin
+        for (int i = 0; i < 2; i++) begin
+          #(CLK_Period/2);
+        end
+        in = ~in; // Alternar o sinal de entrada durante a condição de emergência
+      end
+      critical_state = ~critical_state; // Alternar a condição de emergência
+    end
+    
+    $finish; // Finalizar a simulação
+  end
+endmodule

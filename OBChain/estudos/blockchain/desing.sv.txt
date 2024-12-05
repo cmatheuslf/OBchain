@@ -1,0 +1,58 @@
+`include "block.sv"
+module blockchain(
+  input logic clk,
+  input logic rst,
+  input logic [31:0] index,         // Parâmetro 1: índice
+  input logic [31:0] timestamp,     // Parâmetro 2: timestamp
+  input logic [255:0] data,         // Parâmetro 3: dados
+  input logic [255:0] previous_hash,// Parâmetro 4: hash anterior
+  input logic [255:0] current_hash,// Hash gerado
+  output logic valid,               // Sinal indicando se o hash gerado é válido
+  input logic ready                 // Sinal de prontidão para processar
+);
+
+  // Variáveis internas
+  logic [31:0] index_init = 32'd0;
+  logic [31:0] timestamp_init = 32'h0;
+  logic [255:0] data_init = 256'h0;
+  logic [255:0] previous_hash_init = 256'h0;
+  logic [255:0] gen_hash;
+  logic [255:0] hash_tested;
+  logic [255:0] last_hash;
+
+  // Instanciação do bloco inicializador (init_block)
+  block init_block (
+    .index(index_init),
+    .timestamp(timestamp_init),
+    .data(data_init),
+    .previous_hash(previous_hash_init),
+    .hash(gen_hash)
+  );
+
+  // Instanciação do bloco que gera o novo hash (block_creator)
+  block block_creator (
+    .index(index),
+    .timestamp(timestamp),
+    .data(data),
+    .previous_hash(previous_hash),
+    .hash(hash_tested)
+  );
+
+  // Controle de estado e geração de hash no clock
+  always_ff @(posedge clk or negedge rst) begin
+    if (!rst) begin
+      valid <= 1'b0;
+    end else begin
+      if (ready) begin
+        // Se ready estiver ativo, gerar novo hash
+        if(current_hash == hash_tested) begin
+        	last_hash <= current_hash;
+        	valid <= 1'b1; // Hash gerado é válido
+      	end else begin
+        	valid <= 1'b0; // Hash não é válido enquanto ready não está ativo
+      	end
+      end
+    end
+  end
+
+endmodule

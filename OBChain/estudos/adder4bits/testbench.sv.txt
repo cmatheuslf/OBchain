@@ -1,0 +1,32 @@
+// Code your testbench here
+// or browse Examples
+module adder1bit_tb;
+  logic a[4:0], b[4:0], cin[5:0], s[4:0], cout[5:0];
+  
+  adder4bits add(.A(a), .B(b), .Cin(cin), .S(s), .Cout(cout));
+  
+  initial
+    begin
+      $monitor($time, " a ", a[3],a[2],a[1],a[0], " b ",b[3], b[2], b[1], b[0], " cin ", cin[3],cin[2],cin[1],cin[0],  " SOMA: ",s[3],s[2],s[1],s[0], " CARRY: ", cout[3],cout[2],cout[1],cout[0], " O número é ", cout[3],s[3],s[2],s[1],s[0]);
+      
+      for (int i = 0; i < 4; i++) 
+      	begin
+          a[i] = 1'b0;
+          b[i] = 1'b0;
+          cin[i] = 1'b0;
+        end
+      
+  	
+      
+      for (int i = 0; i <4; i++) 
+      	begin
+          #5
+          a[i] = 1'b1;
+          b[i] = 1'b1;
+        end
+  	
+      
+      
+      
+    end
+endmodule

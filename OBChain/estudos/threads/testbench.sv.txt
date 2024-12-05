@@ -1,0 +1,22 @@
+module tb_top;
+  initial begin
+    #1 $display ("[%0t ns] Start fork ...", $time);
+    
+    fork
+      #5 $display("[%0t ns] Thread1: Orange is named after orange", $time);
+      begin
+        #2 $display("[%0t ns] Thread2: Apple keeps the doctor away", $time);
+        #4 $display("[%0t ns] Thread2: But not anmore", $time);
+      end
+      #3 $display("[%0t ns] Thread5: test", $time);
+      begin
+        #2 $display("[%0t ns] Thread4: Apple keeps the doctor away", $time);
+        #4 $display("[%0t ns] Thread4: But not anmore", $time);
+      end
+      
+      #3 $display ("[0%t ns] Thread3: Banan is a good fruit", $time);
+    join
+    
+    $display ("[0%t ns] After Fork-join", $time);
+  end
+endmodule

@@ -1,0 +1,17 @@
+// Code your design here
+module mux_4bits(
+  input logic [3:0] A, B,
+  input logic [1:0] SEL,
+  output logic [3:0] Y
+);
+  
+  always_comb begin
+    case(SEL)
+      2'b00: Y = A + B;
+	  2'b01: Y = A - B;      
+      2'b10: Y = A / B;
+      2'b11: Y = A * B;
+      default: Y = 4'b0; 
+    endcase
+  end
+endmodule

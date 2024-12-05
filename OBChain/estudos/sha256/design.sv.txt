@@ -1,0 +1,106 @@
+`include "types.sv" ; 
+
+`include "constants.sv" ; 
+
+package functions;
+
+import types::*;
+
+import constants::*;
+
+    // Função usada para indexar arrays usando std_logic_vector:
+function automatic int index(logic [5:0] input_data);
+        return input_data;
+    endfunction
+
+    // Reseta os valores intermediários do hash para seus valores iniciais:
+    task automatic reset_intermediate(
+        output logic [31:0] a, b, c, d, e, f, g, h
+    );
+        a = INITIAL_A;
+        b = INITIAL_B;
+        c = INITIAL_C;
+        d = INITIAL_D;
+        e = INITIAL_E;
+        f = INITIAL_F;
+        g = INITIAL_G;
+        h = INITIAL_H;
+    endtask
+
+    // Calcula a j-ésima palavra do agendamento da mensagem:
+    function automatic logic [31:0] schedule(
+      input logic [31:0] input_data,
+        expanded_message_block_array W,
+        input logic [5:0] iteration
+    );
+        int j = index(iteration);
+        if (j < 16)
+            return input_data;
+        else
+            return o1(W[j - 2]) + W[j - 7] + o0(W[j - 15]) + W[j - 16];
+    endfunction
+
+    // Função de compressão SHA256 para a iteração j:
+    task automatic compress(
+        inout logic [31:0] h0, h1, h2, h3, h4, h5, h6, h7,
+        input logic [31:0] W,
+        input logic [31:0] K
+    );
+        logic [31:0] t1, t2;
+        t1 = h7 + s1(h4) + Ch(h4, h5, h6) + K + W;
+        t2 = s0(h0) + Maj(h0, h1, h2);
+        h7 = h6;
+        h6 = h5;
+        h5 = h4;
+        h4 = h3 + t1;
+        h3 = h2;
+        h2 = h1;
+        h1 = h0;
+        h0 = t1 + t2;
+    endtask
+
+    // Funções matemáticas usadas no SHA256:
+    function automatic logic [31:0] Ch(
+        logic [31:0] x, y, z
+    );
+        return (x & y) ^ (~x & z);
+    endfunction
+
+    function automatic logic [31:0] Maj(
+        logic [31:0] x, y, z
+    );
+        return (x & y) ^ (x & z) ^ (y & z);
+    endfunction
+//rotation
+    function logic [31:0] rotleft(logic [31:0] a, logic [4:0] b);
+        rotleft = (a << b) | (a >> (32 - b));
+    endfunction
+
+    function logic [31:0] rotright(logic [31:0] a, logic [4:0] b);
+        rotright = (a >> b) | (a << (32 - b));
+    endfunction
+
+
+    // Função Big Sigma 0 (s0)
+    function automatic logic [31:0] s0(logic [31:0] x);
+        return rotright(x, 2) ^ rotright(x, 13) ^ rotright(x, 22);
+    endfunction
+
+    // Função Big Sigma 1 (s1)
+    function automatic logic [31:0] s1(logic [31:0] x);
+        return rotright(x, 6) ^ rotright(x, 11) ^ rotright(x, 25);
+    endfunction
+
+
+    // Função Small Sigma 0 (o0)
+    function automatic logic [31:0] o0(logic [31:0] x);
+        return rotright(x, 7) ^ rotright(x, 18) ^ (x >> 3);
+    endfunction
+
+    // Função Small Sigma 1 (o1)
+    function automatic logic [31:0] o1(logic [31:0] x);
+        return rotright(x, 17) ^ rotright(x, 19) ^ (x >> 10);
+    endfunction
+
+
+endpackage

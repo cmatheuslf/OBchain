@@ -1,0 +1,31 @@
+// Code your testbench here
+// or browse Examples
+module shift_reg4_tb;
+  logic in, clk, rst, out;
+  logic [3:0] regs;
+
+  shift_reg4 test(.Data_in(in), .clock(clk), .reset(rst), .Data_out(out), .Data_reg(regs));
+initial begin
+
+  
+    // Estímulo
+    parameter CLK_Period = 10;
+  	in = 0;
+  	 clk=0;
+  
+  $monitor($time, " clk: ", clk, " rst: ", rst ," in: ", in, " out: ", out, " regs: ", regs[0], regs[1], regs[2],regs[3], ); 
+  for (int j = 0; j <4; j++) 
+          begin
+            for (int i = 0; i <2; i++) 
+              begin
+                #(CLK_Period/2) clk = ~clk;
+
+              end
+            in = ~in;
+          end
+
+    // Fim da simulação
+    $finish;
+  end
+  
+endmodule

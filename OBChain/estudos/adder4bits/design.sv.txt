@@ -1,0 +1,29 @@
+// Code your design here
+module adder1bit(
+  input logic A, B, Cin,
+  output logic S, Cout);
+  
+  always_comb S = (A^B);
+  
+  always_comb Cout = (A&B);
+endmodule
+
+
+
+
+module adder4bits(
+  input logic A[4:0], B[4:0], Cin[5:0],
+  output logic S[4:0], Cout[5:0]);
+  
+  always_comb 
+    begin
+      S[0] = (A[0]^B[0]^Cin[0]);
+      Cout[0] = (A[0]&B[0])|(A[0]&Cin[0])|(Cin[0]&B[0]);
+      
+      for (int i = 1; i < 4; i++) 
+        begin
+          S[i] = (A[i]^B[i]^Cout[i-1]);
+          Cout[i] = (A[i]&B[i])|(A[i]&Cout[i-1])|(Cout[i-1]&B[i]);
+        end
+    end
+endmodule

@@ -1,0 +1,116 @@
+typedef struct {
+  logic [31:0] index;
+  logic [31:0] timestamp;
+  logic [255:0] data;
+  logic [255:0] previous_hash;
+  logic [255:0] current_hash;
+} block;
+
+module node(
+  /************dados do bloco para teste inicio**************/
+  input logic [31:0] index,
+  input logic [31:0] timestamp,
+  input logic [255:0] data,
+  input logic [255:0] previous_hash,
+  input logic [255:0] propose_hash,
+  /************dados do bloco para teste fim**************/
+  
+  /************variaveis de controle inicio**************/
+  	//input:
+  input logic clk,    // clock do sistema
+  input logic rst,    // reset do sistema
+  input logic ready,  // pronto para iniciar o processamento
+  
+  	//output:
+  output logic finished,  // processamento finalizado
+  output logic isValid,    // resultado da validação para esse nó
+  output logic [255:0] hash_tested, //hash que foi calculado
+  
+  /************variaveis de controle fim**************/
+  
+  /************Resposta dos nós sobre aquele bloco inicio**************/
+  input logic answerNode1,
+  input logic answerNode2,
+  input logic answerNode3
+  /************Resposta dos nós sobre aquele bloco fim**************/
+);
+
+  // Variáveis de blocos
+  block blockchain [255:0];
+  int index_blockchain = 1;
+  block propose_block;
+  logic [255:0] calculated_hash;
+  
+  // Algoritmo de consenso (usando task)
+  //****************************************************************
+  task consenso(
+      input logic answerNode1,
+      input logic answerNode2,
+      input logic answerNode3,
+      block current_block,
+      input logic [255:0] correct_hash
+  );
+    if ((isValid & answerNode2) | (isValid & answerNode3) | (answerNode2 & answerNode3)) begin // Fazendo o consenso entre os 3 nós
+      current_block.current_hash = correct_hash;  // Colocando o hash que foi calculado no bloco
+      blockchain[index_blockchain] = current_block; // Salvando o bloco na cadeia
+      
+      index_blockchain = index_blockchain + 1; // Aumentando o index do bloco
+      /*$display("bloco: %h", (blockchain[index_blockchain].current_hash));*/
+      $display("bloco adicionado a cadeia");
+    end
+  endtask
+  //****************************************************************
+  
+  // Algoritmo de hashing (usando function)
+  //****************************************************************
+  function logic [255:0] hashing(block current_block);
+      logic [255:0] hash_;
+      // Operação XOR entre os parâmetros (outras operações podem ser feitas)
+      hash_ = current_block.data ^ current_block.previous_hash ^ {current_block.index, current_block.timestamp};
+    
+      return hash_;
+  endfunction
+  //****************************************************************
+
+  // Bloco sequencial que reage à borda de subida do clock
+  always_ff @(posedge clk or posedge rst) begin
+    if (rst) begin
+      isValid =0;
+      // Reset: volta o index para a posição depois do bloco gênesis
+      index_blockchain <= 1;
+      
+      // Montando o bloco gênesis
+      blockchain[0].index = 32'd0;
+      blockchain[0].timestamp = 32'h00000000;
+      blockchain[0].data = 256'h0;
+      blockchain[0].previous_hash = 256'h0;
+      blockchain[0].current_hash = 256'h0;
+      
+    
+    end else begin
+      if (ready) begin
+        calculated_hash = hashing(propose_block);
+        //hash_tested = hashing(propose_block);
+        propose_block = '{index, timestamp, data, previous_hash, 0}; // Preenchendo propose_block
+        isValid = 2;
+        /*$display("hash testado: %h", calculated_hash);
+        $display("hash proposto: %h", propose_hash);
+        $display("resultado: %h", (propose_hash == calculated_hash));
+        $display("resultado2: %h", (previous_hash == blockchain[index_blockchain-1].current_hash));
+        
+        $display("previous hash: %h", (blockchain[index_blockchain-1].previous_hash));*/
+        
+        
+        if ((propose_hash == calculated_hash) && (previous_hash == blockchain[index_blockchain-1].current_hash)) begin
+          isValid = 1;
+          consenso(answerNode1, answerNode2, answerNode3, propose_block, calculated_hash);
+          
+          hash_tested = calculated_hash;
+          $display("index:ss %d", index_blockchain-1);
+          
+        end
+      end
+    end
+  end
+
+endmodule

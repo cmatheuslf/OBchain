@@ -1,0 +1,70 @@
+`include "blockchain.sv"
+module tb_blockchain;
+
+    // Sinais de teste
+    logic clk;
+    logic rst;
+    logic [31:0] index;
+    logic [31:0] timestamp;
+    logic [255:0] data;
+    logic [255:0] previous_hash;
+    logic [255:0] current_hash;
+    logic valid;
+    logic ready;
+
+    // Instanciação do módulo blockchain
+    blockchain uut (
+        .clk(clk),
+        .rst(rst),
+        .index(index),
+        .timestamp(timestamp),
+        .data(data),
+        .previous_hash(previous_hash),
+        .current_hash(current_hash),
+        .valid(valid),
+        .ready(ready)
+    );
+
+    // Geração de clock
+    always #5 clk = ~clk;  // Clock de 10 unidades de tempo
+
+    initial begin
+        // Inicialização dos sinais
+        clk = 0;
+        rst = 0;
+        ready = 0;
+        index = 32'd0;
+        timestamp = 32'd0;
+        data = 256'h0;
+        previous_hash = 256'h0;
+
+        #10 rst = 1;  // Libera o reset após 10 unidades de tempo
+
+        // Teste 1: Ativa o sinal ready e troca as entradas
+        #10;
+        ready = 1;
+        index = 32'd1;
+        timestamp = 32'h12345678;
+        data = 256'habcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789;
+        previous_hash = 256'h123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef;
+
+        #10 ready = 0;  // Desativa o sinal ready
+        $display("Current Hash: , Valid: %b", valid);
+
+        // Teste 2: Ativa novamente o sinal ready com novos dados
+        #20;
+        ready = 1;
+        index = 32'd2;
+        timestamp = 32'habcdef12;
+        data = 256'hfedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210;
+        previous_hash = current_hash;
+
+        #10 ready = 0;
+        $display("Current Hash:, Valid: %b", valid);
+
+        // Finaliza a simulação
+        #20;
+        $finish;
+    end
+
+endmodule

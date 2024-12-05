@@ -1,0 +1,163 @@
+`timescale 1ns/1ps
+
+module tb_node;
+
+  // Sinais de teste
+  logic clk_tb;
+  logic rst_tb;
+  logic ready_tb;
+  logic [31:0] index_tb;
+  logic [31:0] timestamp_tb;
+  logic [255:0] data_tb;
+  logic [255:0] previous_hash_tb;
+  logic [255:0] propose_hash_tb;
+  logic answerNode1_tb;
+  logic answerNode2_tb;
+  logic answerNode3_tb;
+
+  // Saídas do DUT (Design Under Test)
+  logic finished_tb;
+  logic isValid_tb;
+  logic [255:0] hash_tested_tb;
+  
+  logic [255:0] expected_hash;
+
+  // Instanciação do módulo node
+  node uut (
+    .clk(clk_tb),
+    .rst(rst_tb),
+    .ready(ready_tb),
+    .index(index_tb),
+    .timestamp(timestamp_tb),
+    .data(data_tb),
+    .previous_hash(previous_hash_tb),
+    .propose_hash(propose_hash_tb),
+    .finished(finished_tb),
+    .isValid(isValid_tb),
+    .hash_tested(hash_tested_tb),
+    .answerNode1(answerNode1_tb),
+    .answerNode2(answerNode2_tb),
+    .answerNode3(answerNode3_tb)
+  );
+
+  // Geração de clock
+  always #5 clk_tb = ~clk_tb;  // Clock com período de 10 unidades de tempo
+
+  // Inicialização do teste
+  initial begin
+    // Inicializa sinais
+    clk_tb = 0;
+    rst_tb = 0;
+    ready_tb = 0;
+    index_tb = 32'd0;
+    timestamp_tb = 32'h0;
+    data_tb = 256'h0;
+    previous_hash_tb = 256'h0;
+    propose_hash_tb = 256'h0;
+    answerNode1_tb = 0;
+    answerNode2_tb = 0;
+    answerNode3_tb = 0;
+
+    // Reset do sistema
+    #10 rst_tb = 1;  // Reset sai do ativo após 10 unidades de tempo
+    #10 rst_tb = 0;  // Reset desativado, começando o teste
+    
+    // Teste 1: Preencher os valores do bloco e calcular o hash
+    #10;
+    ready_tb = 1;
+    index_tb = 32'd1;
+    timestamp_tb = 32'h12345678;
+    data_tb = 256'habcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789;
+    previous_hash_tb = 256'h0;
+    // Declare expected_hash como automatic logic
+    
+    expected_hash = 256'habcdef0123456789abcdef0123456789abcdef0123456789abcdef00317131f1;
+    propose_hash_tb = expected_hash;
+    answerNode1_tb = 1;
+    answerNode2_tb = 1;
+    answerNode3_tb = 0;
+
+    // Aguarda o processamento
+    #20;
+     // Desativa o ready
+
+    // Imprime os resultados
+    $display("Teste 1:");
+    $display("Index: %d", index_tb);
+    $display("Timestamp: %h", timestamp_tb);
+    $display("Data: %h", data_tb);
+    $display("Previous Hash: %h", previous_hash_tb);
+    $display("Propose Hash: %h", propose_hash_tb);
+    $display("Hash Calculado: %h", hash_tested_tb);
+    $display("valido: %h", isValid_tb);
+    $display("\n\n\n\n");
+
+    // Finaliza a simulação
+    ready_tb = 0; 
+    #50;
+     ready_tb = 1;
+     
+    index_tb = 32'd2;
+    timestamp_tb = 32'h12345689;
+    data_tb = 256'habcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789;
+    previous_hash_tb = 256'habcdef0123456789abcdef0123456789abcdef0123456789abcdef00317131f1;
+    // Declare expected_hash como automatic logic
+    
+    expected_hash = 256'h00000000000000000000000000000000000000000000000000000003000000f1;
+    propose_hash_tb = expected_hash;
+    answerNode1_tb = 1;
+    answerNode2_tb = 0;
+    answerNode3_tb = 0;
+
+    // Aguarda o processamento
+    #20;
+     // Desativa o ready
+
+    // Imprime os resultados
+    $display("Teste 2:");
+    $display("Index: %d", index_tb);
+    $display("Timestamp: %h", timestamp_tb);
+    $display("Data: %h", data_tb);
+    $display("Previous Hash: %h", previous_hash_tb);
+    $display("Propose Hash: %h", propose_hash_tb);
+    $display("Hash Calculado: %h", hash_tested_tb);
+    $display("valido: %h", isValid_tb);
+    $display("\n\n\n\n");
+    #5
+    ready_tb = 0;
+    #50;
+     ready_tb = 1;
+     
+    index_tb = 32'd2;
+    timestamp_tb = 32'h12345689;
+    data_tb = 256'habcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789;
+    previous_hash_tb = 256'habcdef0123456789abcdef0123456789abcdef0123456789abcdef00317131f1;
+    // Declare expected_hash como automatic logic
+    
+    expected_hash = 256'h00000000000000000000000000000000000000000000000000000003000000f1;
+    propose_hash_tb = expected_hash;
+    answerNode1_tb = 1;
+    answerNode2_tb = 1;
+    answerNode3_tb = 0;
+
+    // Aguarda o processamento
+    #20;
+     // Desativa o ready
+
+    // Imprime os resultados
+    $display("Teste 3:");
+    $display("Index: %d", index_tb);
+    $display("Timestamp: %h", timestamp_tb);
+    $display("Data: %h", data_tb);
+    $display("Previous Hash: %h", previous_hash_tb);
+    $display("Propose Hash: %h", propose_hash_tb);
+    $display("Hash Calculado: %h", hash_tested_tb);
+    $display("valido: %h", isValid_tb);
+    $display("\n\n\n\n");
+    #5
+    ready_tb = 0;
+     
+    $finish;
+  end
+
+endmodule

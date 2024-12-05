@@ -1,0 +1,59 @@
+module fsm_tb;
+  logic clk, rst, in;
+  logic out;
+  logic [2:0] state;
+  
+  // Instanciar o módulo FSM
+  FSM test(
+    .clk(clk),
+    .reset(rst),
+    .in_value(in),
+    .out_value(out),
+    .state(state)
+  );
+  
+  //function
+  function string state_to_string(input [2:0] state);
+    case (state)
+      3'b000: state_to_string = "A";
+      3'b001: state_to_string = "B";
+      3'b010: state_to_string = "C";
+      3'b011: state_to_string = "D";
+      3'b100: state_to_string = "E";
+      default: state_to_string = "Unknown";
+    endcase
+  endfunction
+  
+  // Gerar o clock
+  parameter CLK_Period = 10;
+  initial begin
+    clk = 0;
+    forever #(CLK_Period / 2) clk = ~clk;
+  end
+  
+  // Estímulo e verificação
+  initial begin
+    $monitor("Time: %0t, clk: %b, rst: %b, in: %b, out: %b, state: %b", $time, clk, rst, in, out, state_to_string(state));
+    
+    // Inicializar sinais
+    in = 0;
+    rst = 1;
+    
+    // Reset
+    #(CLK_Period) rst = 0;
+    
+    // Teste do FSM
+    #CLK_Period;
+    assert(out === 0) else $error("Expected value error at time %0t: out = %b", $time, out);
+    
+    // Alterar valor de entrada e observar a saída
+    for (int j = 0; j < 4; j++) begin
+      for (int i = 0; i < 2; i++) begin
+        #(CLK_Period);
+      end
+      in = ~in;
+    end
+    
+    $finish;
+  end
+endmodule

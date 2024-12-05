@@ -1,0 +1,18 @@
+// Code your design here
+module flipflop( clk, set, res, d, q);
+  input logic clk;
+  input logic set;
+  input logic res;
+  input logic d;
+  output logic q;
+  
+  always_ff @ (posedge clk or posedge res or posedge set) begin
+    if (res) begin
+      q <= 1'b0;
+    end else if(set) begin
+      q <= 1'b1;
+    end else begin
+      q <= d;
+    end
+  end
+endmodule

@@ -1,0 +1,72 @@
+module tb_sha256;
+
+    // Parâmetros
+    parameter CLK_PERIOD = 10;
+
+    // Sinais de entrada e saída
+    logic         clk;
+    logic         reset;
+    logic         enable;
+    logic         update;
+    logic [3:0]   word_address;
+    logic [31:0]  word_input_tb;  // Redefinido para evitar múltiplas fontes de direção
+    logic [255:0] hash_out;
+    logic         ready;
+    logic [31:0]  debug_port;
+
+    // Instância do DUT (Device Under Test)
+    sha256 dut (
+        .clk(clk),
+        .reset(reset),
+        .enable(enable),
+        .update(update),
+        .word_address(word_address),
+        .word_input(word_input_tb),  // Conectado ao sinal de teste
+        .hash_out(hash_out),
+        .ready(ready),
+        .debug_port(debug_port)
+    );
+
+    // Geração de clock
+    initial begin
+        clk = 0;
+        forever #(CLK_PERIOD/2) clk = ~clk;
+    end
+
+    // Inicialização e aplicação de estímulos
+    initial begin
+        // Inicialmente, reseta o DUT
+        reset = 1;
+        enable = 0;
+        update = 0;
+        word_input_tb = 32'b0;  // Controlado pelo testbench agora
+        #(2*CLK_PERIOD);
+        reset = 0;
+        enable = 1;
+
+        // Espera por alguns ciclos de clock
+        #(10*CLK_PERIOD);
+
+        // Aplicar um vetor de teste ao DUT
+        update = 1;
+        word_input_tb = 32'h616263; // Parte do "abc"
+        #(CLK_PERIOD);
+        update = 0;
+
+        // Espera pelo sinal de ready
+        wait(ready);
+
+        // Exibir o resultado
+        $display("Hash Output: %h", hash_out);
+
+        // Verificar o resultado esperado (SHA-256 de "abc")
+        if (hash_out == 256'hba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad) begin
+            $display("Test Passed!");
+        end else begin
+            $display("Test Failed!");
+        end
+
+        // Finalizar a simulação
+        $finish;
+    end
+endmodule

@@ -1,0 +1,33 @@
+module mux_4bits_tb;
+  logic [3:0] a, b, y;
+  logic [1:0] sel;
+  
+  mux_4bits mutb(.A(a), .B(b), .SEL(sel), .Y(y));
+  
+  initial 
+    begin
+      $monitor($time, " a = ", a, " b= ", b, " y = ",y , " sel = ", sel);
+      #5
+      sel = 2'b00;
+      a = 4'b0010;
+      b = 4'b0001;
+      
+      #5
+      
+      sel = 2'b01;
+      a = 4'b0011;
+      b = 4'b0001;
+      
+      #5
+      
+      sel = 2'b10;
+      a = 4'b0011;
+      b = 4'b0011;
+      
+      #5
+      
+      sel = 2'b11;
+      a = 4'b0011;
+      b = 4'b0011;
+  	end
+endmodule

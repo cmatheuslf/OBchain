@@ -1,0 +1,76 @@
+// Code your design here
+// Code your design here
+module MSM(
+  input logic clk,
+  input logic reset,
+  input logic order,
+  input logic critical_state,
+  output logic [1:0] out_value,
+  output logic [2:0] state);
+  
+  typedef enum logic [2:0] {OPEN,OPENING,CLOSE,CLOSING,EMERGENCY} State;
+  
+  typedef enum logic [1:0] {STOP,RUN,NUR} operation;
+  
+  operation output_signal , final_signal;
+  State currentState, nextState;
+  
+  always_ff @(posedge clk)
+    begin
+      if(reset) begin
+        currentState <=OPEN;
+        final_signal <= STOP;
+      end else begin
+        currentState <= nextState;
+        final_signal <= output_signal;
+
+      end
+    end
+  
+  always_comb begin
+    case(currentState)
+      OPEN: if(!critical_state) begin
+        
+        if(!order) nextState = OPEN;
+      	else nextState = CLOSING;
+        
+      end else nextState = EMERGENCY;
+      
+      CLOSING: if(!critical_state) begin
+        
+        if(!order) nextState = CLOSING;
+      	else nextState = CLOSE;
+        
+      end else nextState = EMERGENCY;
+      
+      CLOSE: if(!critical_state) begin
+        
+        if(!order) nextState = CLOSE;
+      	else nextState = OPENING;
+        
+      end else nextState = EMERGENCY;
+      
+      OPENING: if(!critical_state) begin
+        
+        if(!order) nextState = OPENING;
+      	else nextState = OPEN;
+        
+      end else nextState = EMERGENCY;
+      
+      EMERGENCY: if(critical_state) nextState = EMERGENCY;
+      else nextState = OPENING;
+      
+      default: nextState = EMERGENCY;
+    endcase
+  end
+  
+  always_comb begin
+    if(currentState == OPEN || currentState == CLOSE || currentState == EMERGENCY) output_signal = STOP;
+    else if(currentState == OPENING) output_signal = NUR;
+    else output_signal = RUN;
+  
+  end
+  
+  assign out_value = final_signal;
+  assign state = currentState;
+endmodule

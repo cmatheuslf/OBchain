@@ -1,0 +1,66 @@
+module flipflop_tb;
+  logic clk;
+  logic set;
+  logic res;
+  logic d;
+  logic q;
+  
+  
+  
+  flipflop dff(.clk(clk), .set(set), .res(res), .d(d), .q(q));
+  
+  
+  parameter CLOCK_PERIOD = 10;
+  initial begin
+  	clk = 0;
+  end
+  
+  always #(CLOCK_PERIOD/2) clk = ~(clk);
+  
+  // 
+  /*
+  initial begin
+    clk = 0; // Inicializando o sinal de clock
+    forever #(CLOCK_PERIOD/2) clk = ~clk; // Definindo o período do clock
+  end
+  */
+  
+  initial begin
+    $display("Reset flop.");
+    set = 0;
+    res = 1;
+    d = 1'bx;
+    display;
+    
+    $display("Release reset.");
+    res = 0;
+    d = 1;
+    display;
+    
+    #10; // Aguardar um ciclo de clock
+    
+    $display("Toggle clk.");
+    display;
+    
+    #10; // Aguardar um ciclo de clock
+    
+    $display("Toggle clk.");
+    d = 0;
+    display;
+    
+    #10; // Aguardar um ciclo de clock
+    
+    $display("Setting.");
+    d = 0;
+    set = 0;
+    display;
+    
+    #10; // Aguardar alguns ciclos de clock para observar o resultado
+    $finish; // Finalizar a simulação
+  end
+  
+  task display;
+    #1 $display("d:%0h, q:%0h", d, q);
+  endtask
+
+endmodule
